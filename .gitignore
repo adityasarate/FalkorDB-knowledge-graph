@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.env
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Node / UI (if added)
+node_modules/
+.next/
+out/
+
+# Database & Local Run Data
+data/
+*.rdb
+*.aof
+falkordb_data/
+.DS_Store
