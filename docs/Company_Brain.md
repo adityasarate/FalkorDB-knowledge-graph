@@ -791,7 +791,7 @@ D14 to D25 were accepted on the reviewer's recommendation. The author must read 
 
 | # | Item | Detail | Decided by |
 | --- | --- | --- | --- |
-| S1 | Embedding model and dimension | Proposed `gemini-embedding-001` at 768 dimensions. Docs: default 3,072 dimensions and reducible, 2,048 tokens per input with silent truncation, about $0.15 per million tokens in Google's launch post (price may have changed). A Google AI Pro subscription does not include API calls. A free AI Studio key may work, listed at 100 requests per minute, 30,000 tokens per minute and 1,000 requests per day (may vary). Fallback: a local open-source model, which needs chunking because many accept only 256 to 512 tokens | A test call with a free key |
+| S1 | Embedding model and dimension | **Decided:** `gemini-embedding-001` at 768 dimensions. Tested & verified on 2026-10-25 via `scripts/verify_gemini.py`. Delivers 768-dim reduced embeddings with batch embedding support. Agent models decided: `gemini-3.5-flash` (core agent loop), `gemini-3.5-flash-lite` (fast intent classifier/routing), `gemini-3.8-flash` (reflection). | Verified via `scripts/verify_gemini.py` (D26, D27) |
 | S2 | Which text is embedded | Whole-document and core-text similarities agree only moderately (rank correlation 0.52, 4 of the 8 closest replacement pairs overlap) | Hand-checked pairs on real embeddings |
 | S3 | PEPs with too little text | 37 PEPs lack abstract, motivation and rationale, and 32 have no Section. 5 of 46 replacement pairs are unscored | Fallback text or an explicit "not scored" |
 | S4 | Which `SIMILAR_TO` links to keep | Top 5 per PEP is a placeholder | Top-k, a threshold, or both |
@@ -954,7 +954,7 @@ Cut list if behind, in order: status history (G8), any agent action beyond one, 
 | # | Condition | Status |
 | --- | --- | --- |
 | G1 | Re-run the 31 checks and the reviewer checks on a real FalkorDB server (Docker), not the embedded edition | Open |
-| G2 | Embedding model chosen (S1), real Section embeddings loaded, thresholds (S4 and T) tuned on real vectors and hand-checked pairs | Open |
+| G2 | Embedding model chosen (S1), real Section embeddings loaded, thresholds (S4 and T) tuned on real vectors and hand-checked pairs | Model selected & verified (`gemini-embedding-001` at 768-dim, D26). Ingestion pending |
 | G3 | Loader v1.1 is in the repository and passes the incremental-equals-fresh test on the server | Open. Reference code verified on the embedded edition |
 | G4 | New nodes and links match independent counts (sections 4 and 7.3) | Matched in the reviewer build. Open for the author's loader |
 | G5 | Revised Q1, Q3, Q7 and new Q12 and Q13 are in the trace, with the v1.0 definitions of Q3 and Q7 kept for comparison | Open |

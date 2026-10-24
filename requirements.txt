@@ -26,3 +26,4 @@ scipy
 numpy
 scikit-learn
 google-genai
+fastembed>=0.4.0

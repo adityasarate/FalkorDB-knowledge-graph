@@ -1,0 +1,24 @@
+{
+  "description": "Expected node and relationship counts for Schema v1.1 from Company_Brain.md",
+  "source_dataset": "python/peps commit b80c7bf8d5a89fc47b732504a9e1219b79677531",
+  "nodes": {
+    "PEP": 744,
+    "Person": 372,
+    "Section": 1399,
+    "Release": 28,
+    "Venue": 17
+  },
+  "relationships": {
+    "WROTE": 1159,
+    "REPLACES": 46,
+    "CITES": 1653,
+    "HAS_SECTION": 1399,
+    "DELEGATE_FOR": 129,
+    "SPONSORED": 109,
+    "REQUIRES": 40,
+    "TARGETS_RELEASE": 546,
+    "DISCUSSED_IN": 294,
+    "CO_WROTE_WITH": 1962
+  }
+}
+

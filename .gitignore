@@ -21,3 +21,8 @@ data/
 *.aof
 falkordb_data/
 .DS_Store
+
+# Execution Logs & Traces
+logs/
+*.log
+evaluations/traces/
