@@ -84,6 +84,7 @@ def trace_pep_lineage(pep_number: int) -> Dict[str, Any]:
     pep_metadata = {}
     nodes = []
     sources = []
+    edges = []
     for r in res_meta.result_set:
         num, title, status, created, url, authors = r[0], r[1], r[2], r[3], r[4], r[5]
         pep_metadata[num] = {
@@ -92,6 +93,10 @@ def trace_pep_lineage(pep_number: int) -> Dict[str, Any]:
         }
         nodes.append({"id": f"PEP-{num}", "label": "PEP", "title": title, "status": status})
         sources.append(url)
+        for a_name in authors:
+            if a_name:
+                nodes.append({"id": f"Person-{a_name}", "label": "Person", "name": a_name})
+                edges.append({"source": f"Person-{a_name}", "target": f"PEP-{num}", "type": "WROTE"})
 
     # Fetch edges between them
     q_edges = """
@@ -100,7 +105,6 @@ def trace_pep_lineage(pep_number: int) -> Dict[str, Any]:
     RETURN a.number, b.number, r.similarity
     """
     res_edges = g.query(q_edges, {"peps": list(all_peps)})
-    edges = []
     for r in res_edges.result_set:
         edges.append({
             "source": f"PEP-{r[0]}",
@@ -534,6 +538,16 @@ def get_resurfaced_rejected_ideas(threshold: float = 0.85, top_k: int = 10) -> D
         nodes.append({"id": f"PEP-{r[3]}", "label": "PEP", "title": r[4], "status": "Final"})
         edges.append({"source": f"PEP-{r[0]}", "target": f"PEP-{r[3]}", "type": "SIMILAR_TO", "score": r[6]})
         sources.extend([r[9], r[10]])
+
+        # Add multi-hop author links
+        for a_name in r[7]:
+            if a_name:
+                nodes.append({"id": f"Person-{a_name}", "label": "Person", "name": a_name})
+                edges.append({"source": f"Person-{a_name}", "target": f"PEP-{r[0]}", "type": "WROTE"})
+        for b_name in r[8]:
+            if b_name:
+                nodes.append({"id": f"Person-{b_name}", "label": "Person", "name": b_name})
+                edges.append({"source": f"Person-{b_name}", "target": f"PEP-{r[3]}", "type": "WROTE"})
 
     return {
         "resurfaced_ideas": rows,

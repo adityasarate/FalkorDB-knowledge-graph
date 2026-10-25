@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Company Brain on FalkorDB | Python Governance Knowledge Graph</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Cytoscape.js and Dagre Layout for Graph Rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+
+  <!-- Marked for Markdown Rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-mark">🧠</div>
+      <div>
+        <h1 class="header-title">Company Brain on FalkorDB</h1>
+        <p class="header-subtitle">Python Governance, Institutional Memory & PEP Knowledge Graph</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn-sources-toggle" id="btn-open-sources" title="View Cited Sources">
+        📚 Sources & Anchors <span class="tab-badge" id="sources-count">0</span>
+      </button>
+      <span class="badge badge-success" id="db-status-badge">
+        <span class="pulse-dot"></span> FalkorDB Live
+      </span>
+      <span class="badge badge-info" id="entity-count-badge">
+        12,529 Graph Elements
+      </span>
+      <span class="badge badge-purple" id="model-badge">
+        Gemini 3.5 ReAct
+      </span>
+    </div>
+  </header>
+
+  <!-- Split Screen Layout -->
+  <main class="split-container">
+    
+    <!-- Left Pane: Expanded Chat & Reasoning Interface (56% Width) -->
+    <section class="pane chat-pane">
+      <div class="pane-header">
+        <div class="pane-title">
+          <span class="icon">💬</span> Institutional Governance Chat
+        </div>
+        <div class="pane-actions">
+          <button class="btn-ghost" id="clear-chat-btn" title="Clear conversation">Clear</button>
+        </div>
+      </div>
+
+      <!-- Quick Demo Questions Bar -->
+      <div class="quick-pills-bar">
+        <span class="pills-label">Quick Scenarios:</span>
+        <button class="pill" data-query="Trace the replacement history of the packaging-metadata spec starting from PEP 566, with authors.">
+          📦 Packaging Lineage (PEP 566)
+        </button>
+        <button class="pill" data-query="Which highly foundational PEPs are no longer current within the top 25 PageRank?">
+          ⭐ Foundational Non-Current
+        </button>
+        <button class="pill" data-query="Whose work do other PEPs build on most, excluding citations from PEPs written by the same author?">
+          👑 Author Influence
+        </button>
+        <button class="pill" data-query="Which rejected ideas resurfaced in later accepted PEPs, and who wrote both?">
+          💡 Resurfaced Rejected Ideas
+        </button>
+        <button class="pill" data-query="Who authored PEP 572, what Python version did it target, and what was its core rationale?">
+          🦭 Walrus Operator (PEP 572)
+        </button>
+      </div>
+
+      <!-- Messages Stream -->
+      <div class="chat-messages" id="chat-messages">
+        <!-- Initial Welcome Message -->
+        <div class="message message-agent">
+          <div class="message-avatar">🧠</div>
+          <div class="message-content">
+            <h3>Welcome to the Python Institutional Brain!</h3>
+            <p>I answer institutional governance, history, and lineage questions across all <strong>744 PEPs</strong> by traversing explicit relationships in <strong>FalkorDB</strong>.</p>
+            <p>On the right pane, you can see the <strong>interactive visual graph path (top-right)</strong> and the <strong>live Cypher execution trace (bottom-right)</strong> running simultaneously!</p>
+            <p>Try clicking any of the <em>Quick Scenarios</em> above or ask your own question!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input Area -->
+      <div class="chat-input-container">
+        <form id="chat-form">
+          <textarea 
+            id="chat-input" 
+            placeholder="Ask any question about PEP lineages, governance decisions, authors, or citations..." 
+            rows="2"
+          ></textarea>
+          <button type="submit" id="send-btn" class="btn-primary">
+            <span>Send</span> 🚀
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Right Pane: Vertically Split (Top: Graph Canvas, Bottom: Cypher Trace) -->
+    <section class="pane right-pane">
+      
+      <!-- Top Right: Interactive Graph Canvas -->
+      <div class="right-subpanel graph-subpanel">
+        <div class="subpanel-header">
+          <div class="subpanel-title">
+            🌐 Visual Graph Canvas <span class="tab-badge" id="graph-node-count">0</span>
+          </div>
+          <div class="graph-controls" id="graph-controls">
+            <button class="btn-control" id="btn-fit" title="Fit to View">Fit</button>
+            <button class="btn-control active" id="btn-layout-dag" title="Hierarchical DAG">DAG</button>
+            <button class="btn-control" id="btn-layout-force" title="Force Directed">Organic</button>
+          </div>
+        </div>
+
+        <div class="canvas-wrapper">
+          <div id="cy"></div>
+          
+          <!-- Legend Overlay -->
+          <div class="graph-legend">
+            <div class="legend-item"><span class="legend-color legend-final"></span> Final PEP</div>
+            <div class="legend-item"><span class="legend-color legend-superseded"></span> Superseded</div>
+            <div class="legend-item"><span class="legend-color legend-withdrawn"></span> Withdrawn/Rejected</div>
+            <div class="legend-item"><span class="legend-color legend-person"></span> Person</div>
+            <div class="legend-item"><span class="legend-color legend-release"></span> Release</div>
+          </div>
+
+          <!-- Node Inspector Drawer (Slide-out on node click) -->
+          <div class="node-drawer" id="node-drawer">
+            <div class="drawer-header">
+              <span class="drawer-badge" id="drawer-label">PEP</span>
+              <button class="drawer-close" id="drawer-close-btn">&times;</button>
+            </div>
+            <h3 class="drawer-title" id="drawer-title">PEP 566</h3>
+            <p class="drawer-subtitle" id="drawer-subtitle">Metadata for Python Software Packages 2.1</p>
+            
+            <div class="drawer-body">
+              <div class="drawer-field">
+                <span class="field-label">Status:</span>
+                <span class="field-value" id="drawer-status">Final</span>
+              </div>
+              <div class="drawer-field">
+                <span class="field-label">Authors:</span>
+                <span class="field-value" id="drawer-authors">Dustin Ingram</span>
+              </div>
+              <div class="drawer-field">
+                <span class="field-label">Created:</span>
+                <span class="field-value" id="drawer-created">2016-09-08</span>
+              </div>
+            </div>
+
+            <div class="drawer-footer">
+              <a href="#" target="_blank" rel="noopener noreferrer" class="btn-link" id="drawer-pep-link">
+                🔗 Open Official Specification
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Right: Live Cypher Query Trace Inspector -->
+      <div class="right-subpanel cypher-subpanel">
+        <div class="subpanel-header">
+          <div class="subpanel-title">
+            ⚡ Live Cypher Query & Execution Trace <span class="tab-badge" id="cypher-query-count">0</span>
+          </div>
+          <div class="trace-header-stats" id="trace-header-stats">
+            <span id="trace-latency-pill" class="badge badge-success" style="display:none;">0 ms</span>
+          </div>
+        </div>
+
+        <div class="trace-container" id="trace-container">
+          <div class="empty-state">
+            <p>⚡ Execute a question to inspect live Cypher queries, FalkorDB execution latencies, and row counts.</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Separate Floating Window / Slide-over Drawer for Sources -->
+  <aside class="sources-drawer" id="sources-drawer">
+    <div class="sources-drawer-header">
+      <div class="sources-drawer-title">
+        📚 Cited Official Specifications & Heading Anchors
+      </div>
+      <button class="drawer-close" id="sources-close-btn">&times;</button>
+    </div>
+    <div class="sources-drawer-body" id="sources-container">
+      <div class="empty-state">
+        <p>📚 Official PEP URLs and Section heading anchors cited in the response will appear here.</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Backdrop for Sources Drawer -->
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

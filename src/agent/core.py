@@ -8,6 +8,19 @@ import os
 import sys
 import time
 import functools
+
+# Safeguard stdout/stderr on Windows consoles against charmap encoding issues
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -76,7 +89,10 @@ class GovernanceAgent:
             def wrapper(*args, **kwargs):
                 fn_name = fn.__name__
                 if self.echo:
-                    print(f"🤖 [Agent Tool Call] {fn_name}(args={args}, kwargs={kwargs})")
+                    try:
+                        print(f"[Agent Tool Call] {fn_name}(args={args}, kwargs={kwargs})")
+                    except Exception:
+                        pass
                 
                 trace_ctx.log_step(
                     step_type="tool_call",
@@ -84,8 +100,11 @@ class GovernanceAgent:
                     action=fn_name
                 )
                 
-                # Execute tool
-                res = fn(*args, **kwargs)
+                # Execute tool with exception safety
+                try:
+                    res = fn(*args, **kwargs)
+                except Exception as ex:
+                    res = {"error": f"Tool execution failed: {str(ex)}"}
                 
                 # Log Cypher query if present
                 if isinstance(res, dict) and "cypher" in res:

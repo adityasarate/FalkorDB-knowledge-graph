@@ -82,4 +82,11 @@ The following Gemini models are evaluated and designated for the multi-tier agen
 ### **D30: Verification Harness & Kill Test (`eval/test_agent.py`)**
 * Autonomous evaluation suite verifies 100% pass rate across lineage DAGs, PageRank non-current identification, influence rankings, multi-step primitive composition, and mutation denials.
 
+### **D31: FastAPI Web Application & Interactive Graph Canvas (`src/api/`)**
+* **Single-Command Architecture:** Integrated FastAPI service (`src/api/main.py`) serving both REST endpoints (`/api/chat`, `/api/graph/stats`, `/api/traces/{trace_id}`) and static frontend assets (`src/api/static/`) on port 8000.
+* **Interactive Visual Graph Canvas:** Implemented via Cytoscape.js with Dagre hierarchical DAG layout for replacement lineages, color-coded node statuses (Emerald = Final, Amber = Superseded, Crimson = Withdrawn/Rejected, Purple = Person), and directed arrows.
+* **Node Click Drawer:** Interactive inspection card showing PEP titles, statuses, authors, and canonical links to `peps.python.org`.
+* **Live Observability:** Multi-tab layout featuring live Cypher query inspector with execution latencies (ms) and row counts.
+
+
 
