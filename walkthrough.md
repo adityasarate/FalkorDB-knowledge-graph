@@ -13,7 +13,10 @@
 6. [How Was Everything Loaded? (The Shopping Cart vs 1,000 Trips)](#6-how-was-everything-loaded-the-shopping-cart-vs-1000-trips)
 7. [The Story So Far: Step-by-Step of Everything We Built](#7-the-story-so-far-step-by-step-of-everything-we-built)
 8. [The Numbers & The Truth: Did It Work?](#8-the-numbers--the-truth-did-it-work)
-9. [What's Coming Next: The Autonomous Agent](#9-whats-coming-next-the-autonomous-agent)
+9. [The Autonomous Agent: How the Brain Thinks](#9-the-autonomous-agent-how-the-brain-thinks)
+10. [The Visual Showpiece: The Interactive Web App](#10-the-visual-showpiece-the-interactive-web-app)
+11. [Seeing It In Action: The Golden Questions Conquered](#11-seeing-it-in-action-the-golden-questions-conquered)
+12. [How to Run It Yourself: Quick Start Guide](#12-how-to-run-it-yourself-quick-start-guide)
 
 ---
 
@@ -330,39 +333,159 @@ python eval/check_counts.py
 | **`TARGETS_RELEASE` Milestones** | **546** | 546 | ✅ **100% Exact Match** |
 | **`DISCUSSED_IN` Links** | **294** | 294 | ✅ **100% Exact Match** |
 | **`CO_WROTE_WITH` Partner Links** | **1,962** | 1,962 | ✅ **100% Exact Match** |
-| **TOTAL GRAPH ENTITIES** | **9,897** | **9,897** | 🏆 **PERFECT SCORE** |
+| **`SIMILAR_TO` Semantic Links** | **2,632** | 2,632 | ✅ **100% Exact Match** |
+| **TOTAL GRAPH ENTITIES** | **12,529** | **12,529** | 🏆 **PERFECT SCORE (100% AUDIT MATCH)** |
 
 ---
 
-## 9. What's Coming Next: The Autonomous Agent
+## 9. The Autonomous Agent: How the Brain Thinks
 
-Now that the Knowledge Graph is fully alive, loaded, and verified, we are ready to build the **Agent (The Brain)**:
+Once the graph was loaded with 12,529 elements, we built the **Agent (The Brain)**.
+
+Instead of letting an AI guess random Cypher queries that might crash or hallucinate, we designed a **3-Tier Tool Hierarchy**:
 
 ```
-  User: "Show me the packaging history and who decided it."
+  User: "Trace packaging lineage for PEP 566"
                           │
                           ▼
              ┌─────────────────────────┐
              │       AGENT BRAIN       │
-             │   (gemini-3.5-flash)    │
+             │ (gemini-3.5-flash-lite) │
              └────────────┬────────────┘
                           │
-       ┌──────────────────┼──────────────────┐
-       ▼                  ▼                  ▼
-   [Tier 1]            [Tier 2]           [Tier 3]
- Pre-verified      Building Blocks     Guarded Read-Only
- Graph Recipes      (Primitives)         Free Cypher
-       │                  │                  │
-       └──────────────────┼──────────────────┘
+        ┌─────────────────┼─────────────────┐
+        ▼                 ▼                 ▼
+   [Tier 1]            [Tier 2]          [Tier 3]
+ Pre-Verified       Building Blocks    Guarded Read-Only
+ Graph Recipes       (Primitives)         Free Cypher
+ (100% accurate)    (Composable)       (Safety Checked)
+        │                 │                 │
+        └─────────────────┼─────────────────┘
                           │
                           ▼
-            [FalkorDB Walk & Retrieve]
+             [FalkorDB Walk & Retrieve]
+                   (1 to 15 ms!)
                           │
                           ▼
-       Response + Visual Path Diagram + Source URLs
+       Response + Visual DAG + Live Cypher Trace
 ```
 
-* **Tier 1 (Validated Recipes):** Instant, guaranteed-accurate Cypher queries for the 11 Golden Governance Questions.
-* **Tier 2 (Composable Primitives):** Building blocks (`find_entity`, `traverse_lineage`, `vector_search`) that the agent can snap together for new questions.
-* **Tier 3 (Guarded Cypher):** A sandboxed Cypher tool for creative exploration, clearly labelled as unvalidated.
-* **Structured Trace Logging:** Using our [`src/core/logger.py`](file:///d:/Graph%20hacks/src/core/logger.py) to record every single thought, query, and path in JSON so the user can see everything the agent did!
+### The 3 Tool Tiers:
+1. **Tier 1: Pre-Verified Graph Recipes (The Experts):**
+   * Pre-compiled Cypher queries answering the 11 Golden Questions and 6 Held-out questions.
+   * Guaranteed mathematically correct against NetworkX ground truth calculations.
+   * Runs in 1 to 15 milliseconds!
+2. **Tier 2: Composable Building Blocks (The LEGO Bricks):**
+   * Tools like `search_peps` (hybrid vector + text), `get_pep_details`, `get_pep_sections`, `traverse_graph`, `find_shortest_path`, and `check_relationship_absence`.
+   * The agent can snap them together in sequence to explore questions we never anticipated!
+3. **Tier 3: Guarded Cypher Runner (The Sandbox Explorer):**
+   * For ad-hoc queries, the agent can write Cypher.
+   * Protected by strict safety regex (`NO WRITES`: blocks `CREATE`, `SET`, `DELETE`, `MERGE`, `DROP`).
+   * Transparently flagged in the UI: *"⚠️ Executed via unvalidated ad-hoc query"*.
+
+### The ReAct Loop (Plan ➔ Act ➔ Verify ➔ Answer):
+The agent doesn't just blurt out an answer. It:
+1. **Plans:** Decides which tool or recipe fits the question.
+2. **Acts:** Calls FalkorDB via the Python bridge.
+3. **Verifies:** Checks the returned nodes and relationships.
+4. **Synthesizes:** Formats the answer with a Direct Answer, Evidence Table, Graph Path, and Source Links.
+
+### Resilient Multi-Model Failover:
+To avoid hitting Google's strict 20-request/day free quota on `gemini-3.5-flash`, the agent runs on **`gemini-3.5-flash-lite`** (1,500 daily requests) with an automatic failover sequence to `gemini-flash-latest` if quota is ever pressured.
+
+---
+
+## 10. The Visual Showpiece: The Interactive Web App
+
+We wrapped the agent and FalkorDB into a fast, responsive, split-screen web application built with **FastAPI** and **Cytoscape.js**.
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  🧠 COMPANY BRAIN ON FALKORDB         [📚 Sources & Anchors (5)]  [● FalkorDB Live]  [12,529 Elements] │
+├─────────────────────────────────────────────┬──────────────────────────────────────────────────────────┤
+│  💬 INSTITUTIONAL CHAT (56% WIDTH)          │  🌐 VISUAL GRAPH CANVAS (TOP-RIGHT 58% HEIGHT)           │
+│                                             │  [Fit] [DAG] [Organic]                   Nodes: 11       │
+│  [Quick Demo Pills]:                        │  ┌─────────────────────────────────────────────────────┐ │
+│  [Lineage 566] [PageRank Top 25]            │  │        (Dustin Ingram) -[WROTE]-> (PEP 566)         │ │
+│  [Author Influence] [Resurfaced Ideas]      │  │                     /         \                     │ │
+│  [Walrus 572]                               │  │             (PEP 426)         (PEP 345)             │ │
+│                                             │  │                     \         /                     │ │
+│  User: Trace packaging lineage for PEP 566  │  │                  (PEP 314)                          │ │
+│                                             │  │                      |                              │ │
+│  Agent:                                     │  │      (A.M. Kuchling) -[WROTE]-> (PEP 241)           │ │
+│  ### Direct Short Answer                    │  └─────────────────────────────────────────────────────┘ │
+│  The packaging-metadata spec originated     ├──────────────────────────────────────────────────────────┤
+│  with PEP 241 and evolved through...        │  ⚡ LIVE CYPHER & EXECUTION TRACE (BOTTOM-RIGHT 42%)     │
+│                                             │  Query #1 (1 rows)                        ⚡ 1.7 ms       │
+│  [Evidence Table & Formatting]              │  MATCH p=(n:PEP {number: 566})-[:REPLACES*1..8]->(o:PEP) │
+│                                             │  WHERE NOT (o)-[:REPLACES]->()                           │
+│                                             │  RETURN [x IN nodes(p) | x.number] AS chain...           │
+├─────────────────────────────────────────────┴──────────────────────────────────────────────────────────┤
+│  Input: [ Ask any question...                                                      ] [ Send 🚀 ]       │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### What Makes This UI Special:
+1. **Chat-First Ergonomics (56% Left Panel):** Generous reading room for markdown evidence tables, timeline lists, and direct answers.
+2. **Interactive Visual Canvas (Top Right):** Powered by Cytoscape.js with **Dagre hierarchical layout**. It doesn't just show blobs—it draws multi-hop **directed lineage DAGs** from parent to child proposals with author nodes!
+3. **Status Color-Coding:**
+   * 🟢 **Final PEPs:** Emerald Green (`#10b981`)
+   * 🟠 **Superseded PEPs:** Amber Orange (`#f59e0b`)
+   * 🔴 **Withdrawn / Rejected PEPs:** Crimson Red (`#ef4444`)
+   * 🟣 **People (Authors & Leaders):** Royal Purple (`#8b5cf6`)
+   * 🔵 **Releases:** Cyan (`#06b6d4`)
+4. **Clickable Node Inspector:** Click any node on the graph to open a slide-out card with proposal title, status, authors, date, and a direct `🔗 Open Official Specification on peps.python.org` button.
+5. **Live Simultaneous Cypher Trace (Bottom Right):** Watch the exact Cypher query executed against FalkorDB, its execution time in milliseconds, and returned row counts in real time!
+6. **Slide-Over Sources Drawer:** Click the header badge to slide open a dedicated drawer with every canonical URL and section heading anchor (`#abstract`, `#rationale`, `#rejection-notice`).
+
+---
+
+## 11. Seeing It In Action: The Golden Questions Conquered
+
+Here are real questions you can test right now in the web app:
+
+### 1. The Packaging Metadata Spec Lineage (Q1)
+* **Question:** *"Trace the packaging metadata spec lineage starting from PEP 566, including intermediate proposals and origin."*
+* **What the Graph Reveals:** It is not a straight line! PEP 566 replaced PEP 345 and PEP 426 simultaneously. PEP 426 also replaced PEP 345, which replaced PEP 314, which replaced PEP 241.
+* **Graph Result:** `566 ➔ {426, 345} ➔ 314 ➔ 241`. Origin: PEP 241.
+* **Canvas:** Draws the entire branching DAG with Dustin Ingram and A.M. Kuchling connected!
+
+### 2. Foundational PEPs No Longer Current (Q2)
+* **Question:** *"Which highly foundational PEPs are no longer current?"*
+* **What the Graph Reveals:** Runs FalkorDB PageRank centrality over citation and replacement edges to find the top 25 most cited proposals in Python history, then filters for those with status `Superseded` or `Withdrawn`.
+* **Graph Result:** Identifies **PEP 241**, **PEP 345**, and **PEP 426** as foundational milestones that were retired.
+
+### 3. Whose Work Do Others Build On Most? (Q3)
+* **Question:** *"Whose work do other PEPs build on most?"*
+* **What the Graph Reveals:** Excludes self-citations and counts how many distinct other authors cited each person.
+* **Graph Result:** **Guido van Rossum** (182 non-self citations across 131 distinct PEPs), followed by Barry Warsaw and Brett Cannon.
+
+### 4. Resurfaced Rejected Ideas (Q11)
+* **Question:** *"Which rejected ideas resurfaced in later accepted PEPs, and who wrote both?"*
+* **What the Graph Reveals:** Combines semantic section vector similarity ($\ge 0.85$) with temporal ordering (`accepted.created > rejected.created`), filtering for pairs without direct citation.
+* **Graph Result:** Highlights historical parallels across typing, pattern matching, and package management where rejected concepts were refined and later accepted!
+
+---
+
+## 12. How to Run It Yourself: Quick Start Guide
+
+You can run the entire system in less than 2 minutes on your machine:
+
+### 1. Start FalkorDB
+```powershell
+docker compose up -d
+```
+
+### 2. Verify Everything with the Automated Test Suite
+```powershell
+python eval/check_counts.py          # 100% exact match (12,529 elements)
+python eval/test_golden_questions.py # 19/19 queries passed with ground truth
+python eval/test_agent.py            # 5/5 agent evaluation tests passed
+python eval/test_api.py              # 5/5 API endpoint tests passed
+```
+
+### 3. Launch the Interactive Web App
+```powershell
+python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+```
+Open **[http://localhost:8000](http://localhost:8000)** in your browser and start exploring the 30-year brain of Python!

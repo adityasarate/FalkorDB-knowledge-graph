@@ -36,6 +36,7 @@ This document tracks the dataset source, commit snapshot, file inventory, and ve
 | - Process | 53 | Governance and release management procedures |
 | **Relationship Extraction** | | |
 | - Authors (raw strings) | 373 | Normalized to 370 distinct persons after alias merging |
+| - Additional Persons | 2 | Distinct individuals appearing exclusively as Delegate or Sponsor (`370 + 2 = 372` total `Person` nodes) |
 | - `WROTE` links | 1,159 | Author-to-PEP relationships |
 | - `REPLACES` links | 46 | Combined from `Replaces` (41) and `Superseded-By` (32) |
 | - `CITES` links | 1,653 | Explicit `:pep:` role citations (self-citations excluded) |
@@ -44,7 +45,10 @@ This document tracks the dataset source, commit snapshot, file inventory, and ve
 | - `REQUIRES` links | 40 | Explicit prerequisite dependencies across 28 PEPs |
 | - `TARGETS_RELEASE` links | 546 | Mapped to 28 distinct `Release` nodes (major.minor) |
 | - `DISCUSSED_IN` links | 294 | Mapped to 17 distinct `Venue` nodes |
+| - `CO_WROTE_WITH` links | 1,962 | Bidirectional co-authorship collaboration links |
 | - Section nodes | 1,399 | Abstract (686), Motivation (283), Rationale (377), Rejection Notice (53) |
+| - `SIMILAR_TO` links | 2,632 | Pairwise semantic section similarity edges ($\ge 0.85$ cosine similarity) |
+| **Total Graph Entities** | **12,529** | **2,560 Nodes + 9,969 Relationships** in FalkorDB |
 
 ---
 

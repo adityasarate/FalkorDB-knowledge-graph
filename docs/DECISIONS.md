@@ -88,5 +88,16 @@ The following Gemini models are evaluated and designated for the multi-tier agen
 * **Node Click Drawer:** Interactive inspection card showing PEP titles, statuses, authors, and canonical links to `peps.python.org`.
 * **Live Observability:** Multi-tab layout featuring live Cypher query inspector with execution latencies (ms) and row counts.
 
+### **D32: Dynamic UI Rebalancing & Hierarchical DAG Layout**
+* **Chat-First Ergonomics:** Agent conversational pane widened to 56% width for readable answers, code snippets, and evidence tables.
+* **Split Observability Deck:** Top-right panel (58% height) dedicated to the interactive Cytoscape canvas; bottom-right panel (42% height) displays the simultaneous live Cypher query string, execution latency in milliseconds, and row counts.
+* **Dedicated Sources Drawer:** Slide-over drawer listing canonical URLs and section heading anchors (`#abstract`, `#rationale`, `#rejection-notice`) without cluttering the main conversation.
+* **Multi-Hop Subgraph Visualization:** Automatically routes query subgraphs into Cytoscape. Lineage traversals (`trace_pep_lineage`) enrich proposal chains with author nodes and `[:WROTE]` relationships, rendering multi-hop branching DAGs.
+
+### **D33: Multi-Model Failover & Resilient Free-Tier Quota Handling**
+* **Quota Economics:** Set default agent reasoning model to `gemini-3.5-flash-lite` (1,500 daily requests limit on Google AI Studio Free Tier) to avoid immediate rate starvation experienced on `gemini-3.5-flash` / `gemini-3.6-flash` (capped at 20 requests/day).
+* **Automatic Failover:** `GovernanceAgent.query()` implements a failover sequence across model candidates (`gemini-3.5-flash-lite` $\rightarrow$ `gemini-flash-latest`) upon encountering `429 RESOURCE_EXHAUSTED`.
+
+
 
 
