@@ -64,3 +64,22 @@ The following Gemini models are evaluated and designated for the multi-tier agen
 > [!NOTE]
 > Older generation models (`gemini-2.5-flash`, `gemini-2.5-flash-lite`) have been deprecated by Google for new deployments. `gemini-3.5-flash` and `gemini-3.5-flash-lite` are the designated operational models.
 
+---
+
+## 3. Agent Architecture & Evaluation Decisions (Phase 3)
+
+### **D28: 3-Tier Dynamic Tool Hierarchy (`src/agent/tools.py`)**
+* **Structure:**
+  * **Tier 1 (Validated Institutional Recipes):** Parameterized Cypher wrappers for canonical governance patterns (Q1 lineage, Q2 PageRank non-current, Q3 author influence, Q4 betweenness bridges, Q5 rejected cited later, Q6 high-rejection authors, Q7 unreferenced final PEPs, Q8 rejection reasons, Q9 replacement similarity, Q10 unlinked conceptual twins, Q11 resurfaced rejected ideas, Q12 superseded delegates, Q13 release targets).
+  * **Tier 2 (Composable Graph Primitives):** Building blocks for dynamic open-ended queries: `search_peps` (hybrid full-text + vector), `get_pep_details` (metadata card), `get_pep_sections` (text & anchors), `traverse_graph` (neighborhood expansion), `find_shortest_path` (bidirectional route), `check_relationship_absence` (negative verification).
+  * **Tier 3 (Guarded Read-Only Cypher Runner):** Sandboxed fallback with regex guard preventing mutations (`CREATE`, `SET`, `DELETE`, `MERGE`, `DROP`) and attaching mandatory visual unvalidated warning banner.
+
+### **D29: ReAct Execution Engine & Trace Auditing (`src/agent/core.py`)**
+* **Core Loop:** Powered by Gemini 3.5 (`gemini-3.5-flash`) via `google-genai` SDK using native tool calling in a ReAct loop (Plan $\rightarrow$ Act $\rightarrow$ Verify $\rightarrow$ Synthesize).
+* **Automatic Trace Logging:** Every agent tool execution intercepts Cypher queries, latencies, visited subgraphs, and algorithm runs, persisting structured JSON to `logs/traces/<trace_id>.json` and appending to `logs/traces.jsonl` via `src/core/logger.py`.
+* **Output Standard:** Enforces (1) Direct Short Answer, (2) Evidence Table, (3) Traversal Path, (4) Canonical Sources, and (5) Limitation Disclaimers.
+
+### **D30: Verification Harness & Kill Test (`eval/test_agent.py`)**
+* Autonomous evaluation suite verifies 100% pass rate across lineage DAGs, PageRank non-current identification, influence rankings, multi-step primitive composition, and mutation denials.
+
+
