@@ -81,18 +81,18 @@ Standard RAG (chunking text + vector similarity + top-k retrieval) fails complet
 Every node and edge is extracted deterministically from raw PEP reStructuredText headers, explicit `:pep:` role citations, and verified semantic embeddings—**zero LLM extraction hallucinations during graph building**.
 
 ```mermaid
-graph LR
-  Person["Person (372)"] -->|WROTE (1,159)| PEP["PEP (744)"]
-  Person -->|DELEGATE_FOR (129)| PEP
-  Person -->|SPONSORED (109)| PEP
-  PEP -->|HAS_SECTION (1,399)| Section["Section (1,399)"]
-  PEP -->|REPLACES (46)| PEP
-  PEP -->|CITES (1,653)| PEP
-  PEP -->|REQUIRES (40)| PEP
-  PEP -->|SIMILAR_TO (2,632)| PEP
-  PEP -->|TARGETS_RELEASE (546)| Release["Release (28)"]
-  PEP -->|DISCUSSED_IN (294)| Venue["Venue (17)"]
-  Person <-->|CO_WROTE_WITH (1,962)| Person
+flowchart LR
+    Person["Person (372)"] -->|"WROTE (1,159)"| PEP["PEP (744)"]
+    Person -->|"DELEGATE_FOR (129)"| PEP
+    Person -->|"SPONSORED (109)"| PEP
+    PEP -->|"HAS_SECTION (1,399)"| Section["Section (1,399)"]
+    PEP -->|"REPLACES (46)"| PEP
+    PEP -->|"CITES (1,653)"| PEP
+    PEP -->|"REQUIRES (40)"| PEP
+    PEP -->|"SIMILAR_TO (2,632)"| PEP
+    PEP -->|"TARGETS_RELEASE (546)"| Release["Release (28)"]
+    PEP -->|"DISCUSSED_IN (294)"| Venue["Venue (17)"]
+    Person ---|"CO_WROTE_WITH (1,962)"| Person
 ```
 
 ### Verified Graph Counts (12,529 Total Elements)

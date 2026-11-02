@@ -273,7 +273,7 @@ flowchart TD
     S3 --> S4["4. The Parser<br/>(src/graph/parse.py built)"]
     S4 --> S5["5. Local GPU Embeddings<br/>(FastEmbed on RTX 3050)"]
     S5 --> S6["6. FalkorDB Ingestion<br/>(src/graph/load.py executed)"]
-    S6 --> S7["7. Perfect 100% Audit<br/>(All 9,897 elements verified)"]
+    S6 --> S7["7. Perfect 100% Audit<br/>(All 12,529 elements verified)"]
 ```
 
 ### Step 1: Connecting the Database Bridge
