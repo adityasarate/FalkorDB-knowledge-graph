@@ -467,25 +467,86 @@ Here are real questions you can test right now in the web app:
 
 ---
 
-## 12. How to Run It Yourself: Quick Start Guide
+## 12. How to Run It Yourself: Complete Setup Guide
 
-You can run the entire system in less than 2 minutes on your machine:
+If you just cloned this project onto a fresh computer, here is everything you need to get up and running smoothly.
 
-### 1. Start FalkorDB
+### 🛠️ What You Need Before You Start (Prerequisites)
+1. **Docker & Docker Compose:**
+   - FalkorDB runs inside a lightweight Docker container.
+   - **Windows:** Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and ensure WSL 2 is installed (`wsl --install` in PowerShell). Ensure *"Use the WSL 2 based engine"* is checked in Docker Desktop Settings.
+   - **Linux / macOS:** Install Docker Engine and Docker Compose plugin.
+2. **Python 3.12:**
+   - The project is built and tested on **Python 3.12 (64-bit)**. Check with `python --version`.
+3. **Google AI Studio API Key:**
+   - Grab a free key at [aistudio.google.com](https://aistudio.google.com/). The default agent model (`gemini-3.5-flash-lite`) gives you **1,500 free requests per day**!
+4. **Hardware (GPU or CPU):**
+   - If you have an NVIDIA GPU (e.g. RTX 3050), FastEmbed runs with local GPU acceleration. If you don't, it runs on your CPU seamlessly!
+
+---
+
+### 🚀 Step-by-Step Setup Instructions
+
+#### Step 1: Clone the Repo & Open the Folder
+```powershell
+git clone https://github.com/adityasarate/graph-hacks.git
+cd "Graph hacks"
+```
+
+#### Step 2: Create & Activate Your Python 3.12 Virtual Environment
+**Windows PowerShell:**
+```powershell
+python -m venv .venv
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+```
+
+**Linux / macOS Terminal:**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+#### Step 3: Install the Python Packages
+```powershell
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+#### Step 4: Configure Your `.env` File
+Create a `.env` file in the main folder (or copy `.env.example`):
+```env
+FALKORDB_HOST=localhost
+FALKORDB_PORT=6379
+FALKORDB_GRAPH=hackathon_brain
+
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-3.5-flash-lite
+```
+
+#### Step 5: Start the FalkorDB Container
 ```powershell
 docker compose up -d
 ```
+*Tip: You can visit `http://localhost:3000` to view FalkorDB's visual browser.*
 
-### 2. Verify Everything with the Automated Test Suite
+#### Step 6: Ingest the Knowledge Graph
 ```powershell
-python eval/check_counts.py          # 100% exact match (12,529 elements)
-python eval/test_golden_questions.py # 19/19 queries passed with ground truth
-python eval/test_agent.py            # 5/5 agent evaluation tests passed
-python eval/test_api.py              # 5/5 API endpoint tests passed
+python src/graph/load.py
+```
+This builds your phonebook (Range), search engine (Full-text), and 3D radar (Vector) indexes, then loads all 12,529 PEP items into FalkorDB in under 2 seconds!
+
+#### Step 7: Run the Test Suites
+Make sure all green lights are flashing:
+```powershell
+python eval/check_counts.py          # 100% exact count match across all 15 sets!
+python eval/test_golden_questions.py # 19/19 queries pass with ground truth!
+python eval/test_agent.py            # 5/5 agent evaluation tests passed!
+python eval/test_api.py              # 5/5 web app & API tests passed!
 ```
 
-### 3. Launch the Interactive Web App
+#### Step 8: Launch the Visual Web App!
 ```powershell
 python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
 ```
-Open **[http://localhost:8000](http://localhost:8000)** in your browser and start exploring the 30-year brain of Python!
+Open **[http://localhost:8000](http://localhost:8000)** in your browser and start asking anything about Python's history!
