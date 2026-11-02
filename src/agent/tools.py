@@ -14,7 +14,8 @@ import re
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 from dotenv import load_dotenv
-from falkordb import FalkorDB
+
+from src.core.db import get_db_graph, get_pool_stats
 
 load_dotenv()
 
@@ -32,10 +33,6 @@ def get_embed_model():
         _embed_model = TextEmbedding(model_name="BAAI/bge-base-en-v1.5")
     return _embed_model
 
-def get_db_graph():
-    """Returns an active FalkorDB graph connection."""
-    db = FalkorDB(host=FALKORDB_HOST, port=FALKORDB_PORT)
-    return db.select_graph(FALKORDB_GRAPH)
 
 
 # =============================================================================

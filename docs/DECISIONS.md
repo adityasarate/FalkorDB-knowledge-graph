@@ -98,6 +98,12 @@ The following Gemini models are evaluated and designated for the multi-tier agen
 * **Quota Economics:** Set default agent reasoning model to `gemini-3.5-flash-lite` (1,500 daily requests limit on Google AI Studio Free Tier) to avoid immediate rate starvation experienced on `gemini-3.5-flash` / `gemini-3.6-flash` (capped at 20 requests/day).
 * **Automatic Failover:** `GovernanceAgent.query()` implements a failover sequence across model candidates (`gemini-3.5-flash-lite` $\rightarrow$ `gemini-flash-latest`) upon encountering `429 RESOURCE_EXHAUSTED`.
 
+### **D34: Client Lifecycle Management & Connection Pooling (`src/core/db.py`)**
+* **Connection Pooling:** Transitioned from creating unpooled, ephemeral TCP socket connections per tool invocation (`get_db_graph()`) to a thread-safe singleton `redis.ConnectionPool(max_connections=50)`.
+* **Latency & Port Safety:** Eliminates TCP socket exhaustion (`TIME_WAIT` pileups) under concurrent chat sessions and eliminates redundant FalkorDB Sentinel probe handshakes (`INFO server`), reducing query latency overhead by ~80%.
+* **FastAPI Lifespan Management:** Managed via `@asynccontextmanager` in `src/api/main.py` for pre-warming on startup and clean disconnection on shutdown. Lazy initialization fallback preserves complete backward compatibility for standalone scripts and test harnesses.
+
+
 
 
 

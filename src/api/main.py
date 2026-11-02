@@ -21,6 +21,7 @@ if hasattr(sys.stderr, "reconfigure"):
     except Exception:
         pass
 
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
@@ -37,16 +38,33 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.agent.core import GovernanceAgent
-from src.agent.tools import get_db_graph
+from src.core.db import init_db_pool, close_db_pool, get_db_graph, get_pool_stats
 from src.core.logger import LOGS_DIR
 
 load_dotenv()
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manages the long-lived FalkorDB connection pool across the application lifecycle."""
+    try:
+        g = init_db_pool()
+        app.state.graph = g
+        print("[Lifespan] FalkorDB connection pool initialized (max_connections=50).")
+    except Exception as e:
+        print(f"[Lifespan][ERROR] Failed to initialize FalkorDB pool on startup: {e}")
+    yield
+    close_db_pool()
+    print("[Lifespan] FalkorDB connection pool closed cleanly.")
+
+
 app = FastAPI(
     title="Company Brain: Python Governance & PEP Knowledge Graph API",
     description="FalkorDB-powered multi-tiered institutional governance agent backend.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan,
 )
+
 
 # Enable CORS for local development
 app.add_middleware(
@@ -99,7 +117,8 @@ def health_check():
             "status": "healthy",
             "falkordb_connected": True,
             "pep_nodes_count": pep_count,
-            "agent_model": agent.model_name
+            "agent_model": agent.model_name,
+            "pool": get_pool_stats(),
         }
     except Exception as e:
         return {

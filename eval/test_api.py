@@ -27,7 +27,9 @@ def test_api():
     health = resp.json()
     assert health["status"] == "healthy"
     assert health["falkordb_connected"] is True
-    print(f"✅ Health OK: FalkorDB connected, {health['pep_nodes_count']} PEP nodes detected.")
+    assert "pool" in health and health["pool"]["status"] == "active"
+    assert health["pool"]["max_connections"] == 50
+    print(f"✅ Health OK: FalkorDB connected, {health['pep_nodes_count']} PEP nodes detected, Pool active (max={health['pool']['max_connections']}).")
 
     # 2. Test Live Graph Stats Endpoint
     print("\n[Test 2/5] Testing GET /api/graph/stats...")
