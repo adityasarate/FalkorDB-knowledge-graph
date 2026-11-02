@@ -30,6 +30,7 @@ from google import genai
 from google.genai import types
 
 from src.core.logger import trace_logger, TraceContext, TraceSession
+from src.core.session import session_manager
 from src.agent.prompts import GOVERNANCE_AGENT_SYSTEM_PROMPT
 from src.agent.tools import (
     # Tier 1
@@ -181,6 +182,9 @@ class GovernanceAgent:
         models_to_try = [self.model_name] + [m for m in self.fallback_models if m != self.model_name]
         last_error = None
 
+        # Retrieve conversational context for multi-turn sessions
+        history = session_manager.get_history(session_id) if session_id else None
+
         for model_attempt in models_to_try:
             try:
                 tools = self._create_trace_aware_tools(trace_ctx)
@@ -192,12 +196,17 @@ class GovernanceAgent:
 
                 chat = self.client.chats.create(
                     model=model_attempt,
-                    config=config
+                    config=config,
+                    history=history if history else None
                 )
 
                 # Send prompt and allow multi-turn tool calling loop to execute
                 response = chat.send_message(prompt)
                 answer_text = response.text if response.text else "No synthesis produced."
+
+                # Persist turn to session memory store
+                if session_id:
+                    session_manager.add_turn(session_id, prompt, answer_text)
 
                 # Log synthesis and close trace
                 trace_ctx.log_synthesis(

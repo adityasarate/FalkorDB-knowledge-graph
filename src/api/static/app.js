@@ -393,10 +393,46 @@ function initSourcesDrawer() {
 // CHAT & REASONING STREAM
 // =============================================================================
 
+// Session Memory Management
+let currentSessionId = localStorage.getItem("cb_session_id");
+if (!currentSessionId) {
+  currentSessionId = "sess_" + Math.random().toString(36).substring(2, 11) + "_" + Date.now();
+  localStorage.setItem("cb_session_id", currentSessionId);
+}
+
+async function resetConversation() {
+  const oldSession = currentSessionId;
+  currentSessionId = "sess_" + Math.random().toString(36).substring(2, 11) + "_" + Date.now();
+  localStorage.setItem("cb_session_id", currentSessionId);
+
+  try {
+    if (oldSession) {
+      await fetch("/api/sessions/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: oldSession })
+      });
+    }
+  } catch (err) {
+    console.warn("Could not reset backend session:", err);
+  }
+
+  const messages = document.getElementById("chat-messages");
+  messages.innerHTML = `
+    <div class="message message-agent">
+      <div class="message-avatar">🧠</div>
+      <div class="message-content">
+        <p>Conversation and session memory reset. Ask any question to query the knowledge graph.</p>
+      </div>
+    </div>
+  `;
+}
+
 function initChat() {
   const form = document.getElementById("chat-form");
   const input = document.getElementById("chat-input");
   const clearBtn = document.getElementById("clear-chat-btn");
+  const newChatBtn = document.getElementById("btn-new-chat");
 
   // Auto-resize input
   input.addEventListener("input", () => {
@@ -423,18 +459,9 @@ function initChat() {
     await sendQuery(query);
   });
 
-  // Clear Chat
-  clearBtn.addEventListener("click", () => {
-    const messages = document.getElementById("chat-messages");
-    messages.innerHTML = `
-      <div class="message message-agent">
-        <div class="message-avatar">🧠</div>
-        <div class="message-content">
-          <p>Conversation cleared. Ask any question to query the knowledge graph.</p>
-        </div>
-      </div>
-    `;
-  });
+  // Reset Session Listeners
+  if (clearBtn) clearBtn.addEventListener("click", resetConversation);
+  if (newChatBtn) newChatBtn.addEventListener("click", resetConversation);
 }
 
 function initQuickPills() {
@@ -486,7 +513,10 @@ async function sendQuery(promptText) {
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: promptText })
+      body: JSON.stringify({
+        prompt: promptText,
+        session_id: currentSessionId
+      })
     });
 
     const data = await response.json();

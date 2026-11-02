@@ -103,6 +103,13 @@ The following Gemini models are evaluated and designated for the multi-tier agen
 * **Latency & Port Safety:** Eliminates TCP socket exhaustion (`TIME_WAIT` pileups) under concurrent chat sessions and eliminates redundant FalkorDB Sentinel probe handshakes (`INFO server`), reducing query latency overhead by ~80%.
 * **FastAPI Lifespan Management:** Managed via `@asynccontextmanager` in `src/api/main.py` for pre-warming on startup and clean disconnection on shutdown. Lazy initialization fallback preserves complete backward compatibility for standalone scripts and test harnesses.
 
+### **D35: Conversational Multi-Turn Session Memory (`src/core/session.py`)**
+* **Context Retention:** Introduced a thread-safe `SessionManager` managing conversational dialogue turns across queries keyed by `session_id`.
+* **Dynamic Turn Reconstruction:** Previous turns are passed as `history` into `client.chats.create(history=...)`, allowing Gemini to resolve pronouns (e.g., *"its sponsor"*, *"that PEP"*) while preserving granular per-turn `TraceContext` and isolated Cypher subgraphs.
+* **Sliding-Window & TTL:** Enforces a configurable sliding window (default: 6 turns / 3 exchanges) with a 2-hour idle TTL eviction to prevent memory bloat and token exhaustion.
+* **UI State Control:** Integrated session persistence in `src/api/static/app.js` and added a **"🔄 New Chat"** header button to trigger `POST /api/sessions/reset` and refresh context.
+
+
 
 
 

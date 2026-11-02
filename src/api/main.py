@@ -39,6 +39,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.agent.core import GovernanceAgent
 from src.core.db import init_db_pool, close_db_pool, get_db_graph, get_pool_stats
+from src.core.session import session_manager
 from src.core.logger import LOGS_DIR
 
 load_dotenv()
@@ -91,6 +92,9 @@ class ChatRequest(BaseModel):
     prompt: str
     session_id: Optional[str] = None
 
+class ResetSessionRequest(BaseModel):
+    session_id: str
+
 class ChatResponse(BaseModel):
     answer: str
     trace_id: str
@@ -119,6 +123,7 @@ def health_check():
             "pep_nodes_count": pep_count,
             "agent_model": agent.model_name,
             "pool": get_pool_stats(),
+            "active_sessions": session_manager.get_active_sessions_count(),
         }
     except Exception as e:
         return {
@@ -185,6 +190,21 @@ def chat_endpoint(req: ChatRequest):
         status=resp.status,
         error=resp.error
     )
+
+
+@app.post("/api/sessions/reset")
+def reset_session_endpoint(req: ResetSessionRequest):
+    """
+    Clears active conversation memory for the given session_id.
+    """
+    cleared = session_manager.clear_session(req.session_id)
+    return {
+        "status": "SUCCESS",
+        "session_id": req.session_id,
+        "cleared": cleared,
+        "message": f"Session memory cleared for {req.session_id}."
+    }
+
 
 
 @app.get("/api/traces/{trace_id}")
